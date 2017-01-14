@@ -4,9 +4,9 @@ Example of a refactor of the `validate/2` function described in [Erlang encourag
 
 # The original
 
-The article shows this example as "bad" style
+The article shows this snippet as an example of poor style.
 
-```
+```erlang
 validate(_DbConn, req#{body = <<>>}) ->
   {:error, "No body provided"};
 validate(DbConn, req#{body = ReqJsonStr}) ->
@@ -21,9 +21,9 @@ validate(DbConn, req#{body = ReqJsonStr}) ->
   end.
 ```
 
-And proposes that this refactor is an example of poor functional design (see original article for why).
+The author proposes this refactor, and uses it as an example of erlang encouraging poor functional design.
 
-```
+```erlang
 validate(_DbConn, req#{body = <<>>}) ->
   {:error, "No body provided"};
 validate(DbConn, req#{body = ReqJsonStr}) ->
@@ -50,7 +50,7 @@ find_user(DbConn, ReqUsername, ReqPassword) ->
 
 See `src/validate.erl`.
 
-```
+```erlang
 validate(_DbConn, {error, Reason}) ->
   {error, Reason};
 validate(DbConn, #req{body = ReqJsonStr}) ->
@@ -76,12 +76,19 @@ This fixes the concerns in the article;
  4. Each function is decoupled and easily testable.
 
 This still smells bad. It's odd for `validate/2` to
-take arguments that are tuples ala `{ok, #user_details}` in them.
+take arguments that are tuples ala `{ok, #login_request}`. If someone wanted
+to login without using json, they would be tempted to directly call
 
-Splitting it into an exported `validate/2` and an non-exported module
-function would be better. See `src/validate_redux.erl` for full file.
-
+```erlang
+validate(..., {ok, #login_request{username = Username, password = Password}})
 ```
+
+which is awkward.
+
+Splitting it into an exported `validate/2` and an non-exported set of
+functions (private) would be better. See `src/validate_redux.erl` for full file.
+
+```erlang
 % Public
 
 validate(DbConn, #req{body = ReqJsonStr}) ->
@@ -125,11 +132,13 @@ Message}` in general which is not unreasonable.
 
 # Conclusion
 
-It's easy to write tightly coupled and bad code in any language, and
-it's easy to refactor it to be slightly less bad not still not good.
+It's easy to write tightly coupled and bad code in any language. 
+It's easy to refactor it to be less bad but not still what would 
+objectively be "good".
 
 While there's plenty of examples of "bad" erlang code, specifically
 over-use of `case` in erlang, I would not agree that erlang encourages
 poor functional design.
 
 And yes, proper exunit tests for this would've been nice.
+And no, I do not claim that this is the best refactor.
